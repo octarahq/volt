@@ -48,15 +48,6 @@ Check the syntax and structure of your YAML file without running the browser:
 volt check path/to/script.yaml
 ```
 
-### Generate JSON Schema
-
-Volt can automatically generate a JSON Schema from its internal types. This allows your code editor (like VS Code) to provide autocompletion and validation for your `.yaml`, `.toml`, or `.json` automation scripts.
-
-```bash
-volt schema
-```
-
-This command generates a `volt-schema.json` file inside the `scripts` folder located next to your `volt` binary (e.g., `<binary-dir>/scripts/volt-schema.json`).
 
 ### Schema Validation in Editors
 
@@ -64,14 +55,14 @@ You don't need to configure your editor settings to get autocompletion and valid
 
 **For YAML files** (`script.yaml`):
 ```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/octarahq/volt/main/scripts/volt-schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/octarahq/volt/main/volt-schema.json
 # ...
 ```
 
 **For JSON files** (`script.json`):
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/octarahq/volt/main/scripts/volt-schema.json",
+  "$schema": "https://raw.githubusercontent.com/octarahq/volt/main/volt-schema.json",
   // ...
 }
 ```

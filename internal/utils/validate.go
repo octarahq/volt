@@ -38,6 +38,21 @@ func ValidateScript(script *types.VoltScript) []error {
 			errs = append(errs, fmt.Errorf("invalid config.timeout: %v", err))
 		}
 	}
+	if len(script.Config.Browsers) > 0 {
+		correctBrowsers := []string{"chromium", "firefox", "webkit"}
+		for i, b := range script.Config.Browsers {
+			valid := false
+			for _, cb := range correctBrowsers {
+				if b == cb {
+					valid = true
+					break
+				}
+			}
+			if !valid {
+				errs = append(errs, fmt.Errorf("invalid config.browsers[%d]: %s (allowed: %v)", i, b, correctBrowsers))
+			}
+		}
+	}
 	errs = append(errs, validateSteps(script.Steps, "steps")...)
 	return errs
 }

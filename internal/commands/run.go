@@ -24,62 +24,88 @@ func Run(path string) {
 
 	utils.CheckScript(&script)
 
-	fmt.Printf("Volt : %s\n", script.Name)
-	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-	fmt.Printf("Config : Headless=%t\n", script.Config.Headless)
-	fmt.Println()
-
-	err = playwright.Install()
-	if err != nil {
-		fmt.Printf("✘ Playwright install error: %v\n", err)
-		return
+	browsers := script.Config.Browsers
+	if len(browsers) == 0 {
+		browsers = append(browsers, "chromium")
 	}
 
-	pw, err := playwright.Run()
-	if err != nil {
-		fmt.Printf("✘ Playwright start error: %v\n", err)
-		return
-	}
-	defer pw.Stop()
+	for _, b := range browsers {
 
-	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(script.Config.Headless),
-		Args: []string{
-			"--disable-blink-features=AutomationControlled",
-		},
-	})
-	if err != nil {
-		fmt.Printf("✘ Browser launch error: %v\n", err)
-		return
-	}
-	defer browser.Close()
+		fmt.Printf("Volt : %s (%s)\n", script.Name, b)
+		fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+		fmt.Printf("Config : Headless=%t\n", script.Config.Headless)
+		fmt.Println()
 
-	page, err := browser.NewPage(playwright.BrowserNewPageOptions{
-		UserAgent: playwright.String("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
-	})
-	if err != nil {
-		fmt.Printf("✘ Page creation error: %v\n", err)
-		return
-	}
+		err = playwright.Install()
+		if err != nil {
+			fmt.Printf("✘ Playwright install error: %v\n", err)
+			return
+		}
 
-	stealthScript := `
+		pw, err := playwright.Run()
+		if err != nil {
+			fmt.Printf("✘ Playwright start error: %v\n", err)
+			return
+		}
+		defer pw.Stop()
+
+		var browser playwright.Browser
+		switch b {
+		case "firefox":
+			browser, err = pw.Firefox.Launch(playwright.BrowserTypeLaunchOptions{
+				Headless: playwright.Bool(script.Config.Headless),
+				Args: []string{
+					"--disable-blink-features=AutomationControlled",
+				},
+			})
+		case "webkit":
+			browser, err = pw.WebKit.Launch(playwright.BrowserTypeLaunchOptions{
+				Headless: playwright.Bool(script.Config.Headless),
+				Args: []string{
+					"--disable-blink-features=AutomationControlled",
+				},
+			})
+		default:
+			browser, err = pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
+				Headless: playwright.Bool(script.Config.Headless),
+				Args: []string{
+					"--disable-blink-features=AutomationControlled",
+				},
+			})
+		}
+		if err != nil {
+			fmt.Printf("✘ Browser launch error: %v\n", err)
+			return
+		}
+		defer browser.Close()
+
+		page, err := browser.NewPage(playwright.BrowserNewPageOptions{
+			UserAgent: playwright.String("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
+		})
+		if err != nil {
+			fmt.Printf("✘ Page creation error: %v\n", err)
+			return
+		}
+
+		stealthScript := `
 		Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
 		window.navigator.chrome = { runtime: {} };
 		Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]});
 		Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en', 'fr']});
 	`
-	page.AddInitScript(playwright.Script{Content: playwright.String(stealthScript)})
+		page.AddInitScript(playwright.Script{Content: playwright.String(stealthScript)})
 
-	state := engine.NewEngineState(script.Vars)
+		state := engine.NewEngineState(script.Vars)
 
-	nbSteps := len(script.Steps)
-	for i, s := range script.Steps {
-		state.InterpolateStep(&s)
-		line, err := utils.ProcessStep(page, state, s)
-		if err != nil {
-			fmt.Printf("  [%d/%d] ✘ %s\n", i+1, nbSteps, err)
-			return
+		nbSteps := len(script.Steps)
+		for i, s := range script.Steps {
+			state.InterpolateStep(&s)
+			line, err := utils.ProcessStep(page, state, s)
+			if err != nil {
+				fmt.Printf("  [%d/%d] ✘ %s\n", i+1, nbSteps, err)
+				return
+			}
+			fmt.Printf("  [%d/%d] ✔ %s\n", i+1, nbSteps, line)
 		}
-		fmt.Printf("  [%d/%d] ✔ %s\n", i+1, nbSteps, line)
 	}
 }

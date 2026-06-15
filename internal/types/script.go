@@ -8,10 +8,11 @@ type VoltScript struct {
 }
 
 type GlobalConfig struct {
-	Headless bool   `yaml:"headless" json:"headless" toml:"headless"`
-	SlowMo   string `yaml:"slow_mo,omitempty" json:"slow_mo,omitempty" toml:"slow_mo,omitempty"`
-	Timeout  string `yaml:"timeout,omitempty" json:"timeout,omitempty" toml:"timeout,omitempty"`
-	Output   string `yaml:"output,omitempty" json:"output,omitempty" toml:"output,omitempty"`
+	Headless bool     `yaml:"headless" json:"headless" toml:"headless"`
+	SlowMo   string   `yaml:"slow_mo,omitempty" json:"slow_mo,omitempty" toml:"slow_mo,omitempty"`
+	Timeout  string   `yaml:"timeout,omitempty" json:"timeout,omitempty" toml:"timeout,omitempty"`
+	Output   string   `yaml:"output,omitempty" json:"output,omitempty" toml:"output,omitempty"`
+	Browsers []string `yaml:"browsers,omitempty" json:"browsers,omitempty" toml:"browsers,omitempty"`
 }
 
 type Step struct {
