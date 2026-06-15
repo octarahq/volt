@@ -10,19 +10,28 @@ import (
 	"github.com/playwright-community/playwright-go"
 )
 
-func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Step) (string, error) {
+func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Step, humanize bool) (string, error) {
 	switch step.Action {
 	case "navigate":
 		if _, err := page.Goto(step.URL); err != nil {
 			return "", fmt.Errorf("Navigate to %s (Error: %v)", step.URL, err)
 		}
+		if humanize {
+			InitMousePointer(page)
+		}
 		return fmt.Sprintf("Navigate to %s", step.URL), nil
 	case "click":
+		if humanize {
+			HumanizeMouse(page, step.Selector)
+		}
 		if err := page.Click(step.Selector); err != nil {
 			return "", fmt.Errorf("Click on %s (Error: %v)", step.Selector, err)
 		}
 		return fmt.Sprintf("Click on %s", step.Selector), nil
 	case "type":
+		if humanize {
+			HumanizeMouse(page, step.Selector)
+		}
 		if err := page.Locator(step.Selector).Fill(step.Value); err != nil {
 			return "", fmt.Errorf("Type '%s' into %s (Error: %v)", step.Value, step.Selector, err)
 		}
@@ -33,6 +42,9 @@ func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Ste
 		}
 		return fmt.Sprintf("Press '%s' on %s", step.Value, step.Selector), nil
 	case "hover":
+		if humanize {
+			HumanizeMouse(page, step.Selector)
+		}
 		if err := page.Locator(step.Selector).Hover(); err != nil {
 			return "", fmt.Errorf("Hover on %s (Error: %v)", step.Selector, err)
 		}

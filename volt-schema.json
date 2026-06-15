@@ -42,6 +42,9 @@
         },
         "errorIfCaptcha": {
           "type": "boolean"
+        },
+        "humanize": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

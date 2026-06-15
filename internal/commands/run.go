@@ -93,13 +93,14 @@ func Run(path string) {
 		}
 
 		var newPageOptions playwright.BrowserNewPageOptions
-		if b == "chromium" {
+		switch b {
+		case "chromium":
 			newPageOptions.UserAgent = playwright.String("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-		} else if b == "webkit" {
+		case "webkit":
 			fmt.Println("Warning: If you are not browsing your own site, WebKit is very easy to detect as a bot")
 			newPageOptions.UserAgent = playwright.String("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15")
-		} else if b == "firefox" {
-			newPageOptions.UserAgent = playwright.String("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0")
+		case "firefox":
+			fmt.Println("Warning: If you are not browsing your own site, Firefox is very easy to detect as a bot")
 		}
 
 		page, err := browser.NewPage(newPageOptions)
@@ -115,7 +116,7 @@ func Run(path string) {
 		nbSteps := len(script.Steps)
 		for i, s := range script.Steps {
 			state.InterpolateStep(&s)
-			line, err := utils.ProcessStep(page, state, s)
+			line, err := utils.ProcessStep(page, state, s, script.Config.Humanize)
 			if err != nil {
 				fmt.Printf("  [%d/%d] ✘ %s\n", i+1, nbSteps, err)
 				return

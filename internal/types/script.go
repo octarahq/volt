@@ -14,6 +14,7 @@ type GlobalConfig struct {
 	Output         string   `yaml:"output,omitempty" json:"output,omitempty" toml:"output,omitempty"`
 	Browsers       []string `yaml:"browsers,omitempty" json:"browsers,omitempty" toml:"browsers,omitempty"`
 	ErrorIfCaptcha bool     `yaml:"errorIfCaptcha,omitempty" json:"errorIfCaptcha,omitempty" toml:"errorIfCaptcha,omitempty"`
+	Humanize       bool     `yaml:"humanize,omitempty" json:"humanize,omitempty" toml:"humanize,omitempty"`
 }
 
 type Step struct {
