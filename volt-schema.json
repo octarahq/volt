@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/VoltScript",
+  "$defs": {
+    "AssertConfig": {
+      "properties": {
+        "selector": {
+          "type": "string"
+        },
+        "equals": {
+          "type": "string"
+        },
+        "contains": {
+          "type": "string"
+        },
+        "eval": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "GlobalConfig": {
+      "properties": {
+        "headless": {
+          "type": "boolean"
+        },
+        "slow_mo": {
+          "type": "string"
+        },
+        "timeout": {
+          "type": "string"
+        },
+        "output": {
+          "type": "string"
+        },
+        "browsers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "headless"
+      ]
+    },
+    "LoopConfig": {
+      "properties": {
+        "from": {
+          "type": "integer"
+        },
+        "to": {
+          "type": "integer"
+        },
+        "index": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "from",
+        "to",
+        "index"
+      ]
+    },
+    "Position": {
+      "properties": {
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        "full_page": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ScrapeConfig": {
+      "properties": {
+        "parent": {
+          "type": "string"
+        },
+        "fields": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "fields"
+      ]
+    },
+    "Step": {
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "selector": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "integer"
+        },
+        "key": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "as": {
+          "type": "string"
+        },
+        "attribute": {
+          "type": "string"
+        },
+        "condition": {
+          "type": "string"
+        },
+        "then": {
+          "items": {
+            "$ref": "#/$defs/Step"
+          },
+          "type": "array"
+        },
+        "else": {
+          "items": {
+            "$ref": "#/$defs/Step"
+          },
+          "type": "array"
+        },
+        "loop": {
+          "$ref": "#/$defs/LoopConfig"
+        },
+        "for_each": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "iterator": {
+          "type": "string"
+        },
+        "do": {
+          "items": {
+            "$ref": "#/$defs/Step"
+          },
+          "type": "array"
+        },
+        "message": {
+          "type": "string"
+        },
+        "scrape": {
+          "$ref": "#/$defs/ScrapeConfig"
+        },
+        "assert": {
+          "$ref": "#/$defs/AssertConfig"
+        },
+        "headers": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "pathname": {
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "action"
+      ]
+    },
+    "VoltScript": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "config": {
+          "$ref": "#/$defs/GlobalConfig"
+        },
+        "vars": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/Step"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "config",
+        "steps"
+      ]
+    }
+  }
+}

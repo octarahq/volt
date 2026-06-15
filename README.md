@@ -48,9 +48,53 @@ Check the syntax and structure of your YAML file without running the browser:
 volt check path/to/script.yaml
 ```
 
+### Generate JSON Schema
+
+Volt can automatically generate a JSON Schema from its internal types. This allows your code editor (like VS Code) to provide autocompletion and validation for your `.yaml`, `.toml`, or `.json` automation scripts.
+
+```bash
+volt schema
+```
+
+This command generates a `volt-schema.json` file inside the `scripts` folder located next to your `volt` binary (e.g., `<binary-dir>/scripts/volt-schema.json`).
+
+### Schema Validation in Editors
+
+You don't need to configure your editor settings to get autocompletion and validation. Simply add the schema link at the very top of your script file.
+
+**For YAML files** (`script.yaml`):
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/octarahq/volt/main/scripts/volt-schema.json
+# ...
+```
+
+**For JSON files** (`script.json`):
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/octarahq/volt/main/scripts/volt-schema.json",
+  // ...
+}
+```
+
+**For TOML files** (`script.toml`):
+```toml
+#:schema https://raw.githubusercontent.com/octarahq/volt/main/scripts/volt-schema.json
+# ...
+```
+
 ## Script Structure
 
 A Volt script is composed of global configurations, variables, and sequential steps.
+
+### Supported Configurations
+
+The `config` block allows you to define global settings for your automation script. The following options are supported:
+
+- `headless` (boolean): Run the browser in headless mode (invisible).
+- `slow_mo` (string): Delay between Playwright operations. Useful for local debugging (e.g., `"500ms"`).
+- `timeout` (string): Maximum execution time for the automation script.
+- `output` (string): Define an output directory or file path for saved data (like screenshots or scraped data).
+- `browsers` (list of strings): A list of browsers to execute the automation on (e.g., `["chromium", "firefox", "webkit"]`). The script will be run for each browser specified.
 
 Example `script.yaml`:
 
@@ -59,6 +103,9 @@ name: "Example Automation"
 config:
   headless: false
   slow_mo: "500ms"
+  browsers:
+    - chromium
+    - firefox
 steps:
   - action: "navigate"
     url: "https://example.com"
@@ -121,7 +168,3 @@ Here is the implementation status of the actions planned for Volt:
 - [x] `add_header`: Add custom HTTP header.
 - [x] `set_header`: Set custom HTTP header.
 - [x] `remove_header`: Remove custom HTTP header.
-
-## License
-
-[Add License Information Here]
