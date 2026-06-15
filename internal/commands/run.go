@@ -54,16 +54,10 @@ func Run(path string) {
 		case "firefox":
 			browser, err = pw.Firefox.Launch(playwright.BrowserTypeLaunchOptions{
 				Headless: playwright.Bool(script.Config.Headless),
-				Args: []string{
-					"--disable-blink-features=AutomationControlled",
-				},
 			})
 		case "webkit":
 			browser, err = pw.WebKit.Launch(playwright.BrowserTypeLaunchOptions{
 				Headless: playwright.Bool(script.Config.Headless),
-				Args: []string{
-					"--disable-blink-features=AutomationControlled",
-				},
 			})
 		default:
 			browser, err = pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
@@ -79,20 +73,41 @@ func Run(path string) {
 		}
 		defer browser.Close()
 
-		page, err := browser.NewPage(playwright.BrowserNewPageOptions{
-			UserAgent: playwright.String("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
-		})
+		var stealthScript string
+
+		switch b {
+		case "firefox":
+			stealthScript = `
+				Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+			`
+		case "webkit":
+			stealthScript = `
+				Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+				Object.defineProperty(navigator, 'platform', {get: () => 'MacIntel'});
+			`
+		default:
+			stealthScript = `
+				Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+				window.navigator.chrome = { runtime: {} };
+			`
+		}
+
+		var newPageOptions playwright.BrowserNewPageOptions
+		if b == "chromium" {
+			newPageOptions.UserAgent = playwright.String("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+		} else if b == "webkit" {
+			fmt.Println("Warning: If you are not browsing your own site, WebKit is very easy to detect as a bot")
+			newPageOptions.UserAgent = playwright.String("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15")
+		} else if b == "firefox" {
+			newPageOptions.UserAgent = playwright.String("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0")
+		}
+
+		page, err := browser.NewPage(newPageOptions)
 		if err != nil {
 			fmt.Printf("✘ Page creation error: %v\n", err)
 			return
 		}
 
-		stealthScript := `
-		Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-		window.navigator.chrome = { runtime: {} };
-		Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]});
-		Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en', 'fr']});
-	`
 		page.AddInitScript(playwright.Script{Content: playwright.String(stealthScript)})
 
 		state := engine.NewEngineState(script.Vars)
@@ -106,6 +121,13 @@ func Run(path string) {
 				return
 			}
 			fmt.Printf("  [%d/%d] ✔ %s\n", i+1, nbSteps, line)
+
+			if script.Config.ErrorIfCaptcha {
+				if utils.CheckForCaptcha(page) {
+					fmt.Printf("  [%d/%d] ✘ Captcha detected! Stopping script as requested by ErrorIfCaptcha.\n", i+1, nbSteps)
+					return
+				}
+			}
 		}
 	}
 }

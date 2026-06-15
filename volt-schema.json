@@ -39,6 +39,9 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "errorIfCaptcha": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
