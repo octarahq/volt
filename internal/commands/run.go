@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"volt/internal/engine"
 	"volt/internal/utils"
 
 	"github.com/playwright-community/playwright-go"
@@ -69,9 +70,12 @@ func Run(path string) {
 	`
 	page.AddInitScript(playwright.Script{Content: playwright.String(stealthScript)})
 
+	state := engine.NewEngineState(script.Vars)
+
 	nbSteps := len(script.Steps)
 	for i, s := range script.Steps {
-		line, err := utils.ProcessStep(page, s)
+		state.InterpolateStep(&s)
+		line, err := utils.ProcessStep(page, state, s)
 		if err != nil {
 			fmt.Printf("  [%d/%d] ✘ %s\n", i+1, nbSteps, err)
 			return
