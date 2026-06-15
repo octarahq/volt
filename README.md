@@ -103,7 +103,7 @@ Here is the implementation status of the actions planned for Volt:
 - [ ] `if`: Conditional execution block.
 - [ ] `loop`: Indexed numerical loop.
 - [ ] `for_each`: Iterate over a list.
-- [ ] `log`: Console logging.
+- [x] `log`: Console logging.
 
 ### Waiting & Delays
 - [ ] `wait`: Fixed time delay.
@@ -116,9 +116,11 @@ Here is the implementation status of the actions planned for Volt:
 - [ ] `assert_eval`: Assert the result of a JS evaluation.
 
 ### System
-- [ ] `screenshot`: Capture a screenshot.
-- [ ] `clear_cookies`: Clear browser cookies.
-- [ ] `set_headers`: Set custom HTTP headers.
+- [x] `screenshot`: Capture a screenshot.
+- [x] `clear_cookies`: Clear browser cookies.
+- [x] `add_header`: Add custom HTTP header.
+- [x] `set_header`: Set custom HTTP header.
+- [x] `remove_header`: Remove custom HTTP header.
 
 ## License
 

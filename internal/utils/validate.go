@@ -134,6 +134,22 @@ func validateSteps(steps []types.Step, contextPath string) []error {
 				errs = append(errs, fmt.Errorf("%s: for_each action requires 'do' steps", path))
 			}
 			errs = append(errs, validateSteps(step.Do, path+".do")...)
+		case "screenshot":
+			continue
+		case "clear_cookies":
+			continue
+		case "add_header":
+			if step.Name == "" || step.Value == "" {
+				errs = append(errs, fmt.Errorf("%s: add_header action requires 'name' and 'value'", path))
+			}
+		case "set_header":
+			if step.Name == "" || step.Value == "" {
+				errs = append(errs, fmt.Errorf("%s: set_header action requires 'name' and 'value'", path))
+			}
+		case "remove_header":
+			if step.Name == "" {
+				errs = append(errs, fmt.Errorf("%s: remove_header action requires 'name'", path))
+			}
 		default:
 			errs = append(errs, fmt.Errorf("%s: Action: %s (Not implemented)", path, step.Action))
 		}

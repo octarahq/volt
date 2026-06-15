@@ -36,11 +36,21 @@ type Step struct {
 	Scrape    *ScrapeConfig     `yaml:"scrape,omitempty" json:"scrape,omitempty" toml:"scrape,omitempty"`
 	Assert    *AssertConfig     `yaml:"assert,omitempty" json:"assert,omitempty" toml:"assert,omitempty"`
 	Headers   map[string]string `yaml:"headers,omitempty" json:"headers,omitempty" toml:"headers,omitempty"`
+	Pathname  string            `yaml:"pathname,omitempty" json:"pathname,omitempty" toml:"pathname,omitempty"`
+	Position  *Position         `yaml:"position,omitempty" json:"position,omitempty" toml:"position,omitempty"`
 }
 
 type ScrapeConfig struct {
 	Parent string            `yaml:"parent,omitempty" json:"parent,omitempty" toml:"parent,omitempty"`
 	Fields map[string]string `yaml:"fields" json:"fields" toml:"fields"`
+}
+
+type Position struct {
+	X        int  `yaml:"x,omitempty" json:"x,omitempty" toml:"x,omitempty"`
+	Y        int  `yaml:"y,omitempty" json:"y,omitempty" toml:"y,omitempty"`
+	Width    int  `yaml:"width,omitempty" json:"width,omitempty" toml:"width,omitempty"`
+	Height   int  `yaml:"height,omitempty" json:"height,omitempty" toml:"height,omitempty"`
+	FullPage bool `yaml:"full_page,omitempty" json:"full_page,omitempty" toml:"full_page,omitempty"`
 }
 
 type LoopConfig struct {

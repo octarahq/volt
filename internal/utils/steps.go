@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"volt/internal/engine"
 	"volt/internal/types"
 
@@ -112,6 +114,72 @@ func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Ste
 			return "Scroll to top", nil
 		}
 		return "", fmt.Errorf("Scroll action requires a selector, or value 'top' or 'bottom'")
+
+	case "screenshot":
+		path := step.Pathname
+		if path == "" {
+			absPath, err := filepath.Abs("screenshot.png")
+			if err != nil {
+				return "", fmt.Errorf("Get absolute screenshot path (Error: %v)", err)
+			}
+			path = absPath
+		}
+
+		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+			return "", fmt.Errorf("Create screenshot directory (Error: %v)", err)
+		}
+
+		opts := playwright.PageScreenshotOptions{
+			Path: playwright.String(path),
+		}
+
+		if step.Position != nil {
+			pos := step.Position
+			if pos.FullPage {
+				opts.FullPage = playwright.Bool(true)
+			} else if pos.Width > 0 || pos.Height > 0 || pos.X != 0 || pos.Y != 0 {
+				opts.Clip = &playwright.Rect{
+					X:      float64(pos.X),
+					Y:      float64(pos.Y),
+					Width:  float64(pos.Width),
+					Height: float64(pos.Height),
+				}
+			}
+		}
+
+		if _, err := page.Screenshot(opts); err != nil {
+			return "", fmt.Errorf("Take screenshot and store to %s (Error: %v)", path, err)
+		}
+
+		return fmt.Sprintf("Take screenshot and store to %s", path), nil
+	case "clear_cookies":
+		if err := page.Context().ClearCookies(); err != nil {
+			return "", fmt.Errorf("Clear cookies (Error: %v)", err)
+		}
+		return "Clear cookies", nil
+	case "add_header":
+		name := step.Name
+		value := step.Value
+
+		if err := page.Context().SetExtraHTTPHeaders(map[string]string{name: value}); err != nil {
+			return "", fmt.Errorf("Add header '%s: %s' (Error: %v)", name, value, err)
+		}
+		return fmt.Sprintf("Add header '%s: %s'", name, value), nil
+	case "set_header":
+		name := step.Name
+		value := step.Value
+
+		if err := page.Context().SetExtraHTTPHeaders(map[string]string{name: value}); err != nil {
+			return "", fmt.Errorf("Set header '%s: %s' (Error: %v)", name, value, err)
+		}
+		return fmt.Sprintf("Set header '%s: %s'", name, value), nil
+	case "remove_header":
+		name := step.Name
+
+		if err := page.Context().SetExtraHTTPHeaders(map[string]string{name: ""}); err != nil {
+			return "", fmt.Errorf("Remove header '%s' (Error: %v)", name, err)
+		}
+		return fmt.Sprintf("Remove header '%s'", name), nil
 
 	default:
 		return "", fmt.Errorf("Action: %s (Not implemented)", step.Action)
