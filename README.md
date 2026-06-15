@@ -1,0 +1,125 @@
+# Volt
+
+Volt is a universal web automation, scripting, testing, and Robotic Process Automation (RPA) tool written in Go. It provides the power of Playwright through simple, lightweight, and portable YAML-TOML-JSON configuration files, allowing for a 100% No-Code/Low-Code experience.
+
+## Features
+
+- **File-Based Automation**: Define complex browser automation workflows using readable YAML-TOML-JSON syntax without writing code.
+- **Powered by Playwright**: Reliable and fast cross-browser automation engine.
+- **Headless and Headful Modes**: Run scripts invisibly in the background for CI/CD pipelines, or visibly with an optional slow-motion mode for local debugging.
+- **Standalone Binary**: Compiled in Go, requiring no Node.js environment or `node_modules`.
+- **Static Validation**: Built-in syntax and semantic checker to validate scripts before execution.
+
+## Installation
+
+Ensure you have Go installed (version 1.22 or higher).
+
+Clone the repository and build the project:
+
+```bash
+git clone https://github.com/octarahq/volt.git
+cd volt
+go build -o volt main.go
+```
+
+To install the required Playwright browsers, run the command below on your first setup:
+
+```bash
+go run github.com/playwright-community/playwright-go/cmd/playwright@latest install --with-deps
+```
+
+## Usage
+
+Volt provides a command-line interface to interact with your scripts.
+
+### Run a Script
+
+Execute an automation script:
+
+```bash
+volt run path/to/script.yaml
+```
+
+### Validate a Script
+
+Check the syntax and structure of your YAML file without running the browser:
+
+```bash
+volt check path/to/script.yaml
+```
+
+## Script Structure
+
+A Volt script is composed of global configurations, variables, and sequential steps.
+
+Example `script.yaml`:
+
+```yaml
+name: "Example Automation"
+config:
+  headless: false
+  slow_mo: "500ms"
+steps:
+  - action: "navigate"
+    url: "https://example.com"
+  
+  - action: "type"
+    selector: "input[name='q']"
+    value: "Volt automation"
+
+  - action: "press_key"
+    selector: "input[name='q']"
+    value: "Enter"
+
+  - action: "click"
+    selector: "a.result-link"
+```
+
+## Supported Actions
+
+Here is the implementation status of the actions planned for Volt:
+
+### Interactions
+- [x] `navigate`: Go to a specific URL (`url`).
+- [x] `click`: Click on an element targeting a CSS selector (`selector`).
+- [x] `hover`: Hover over an element (`selector`).
+- [x] `type`: Type text into an input field (`selector`, `value`).
+- [x] `press_key`: Press a specific keyboard key on an element (`selector`, `value`).
+- [x] `check` / `uncheck`: Toggle checkboxes.
+- [x] `select`: Select options from dropdowns.
+- [x] `upload`: Upload files.
+- [x] `scroll`: Scroll the page (top, bottom, or to a specific selector).
+
+### Variables & RPA
+- [x] `store_value`: Store constant value into a variable.
+- [x] `store_text`: Store text content of an element into a variable.
+- [x] `store_attribute`: Store an attribute of an element into a variable.
+- [x] `store_eval`: Store the result of a JS evaluation into a variable.
+
+### Scraping
+- [ ] `scrape`: Extract structured list data into JSON/CSV.
+
+### Logic and Flows
+- [ ] `if`: Conditional execution block.
+- [ ] `loop`: Indexed numerical loop.
+- [ ] `for_each`: Iterate over a list.
+- [ ] `log`: Console logging.
+
+### Waiting & Delays
+- [ ] `wait`: Fixed time delay.
+- [ ] `wait_visible` / `wait_hidden`: Wait for an element's visibility state.
+- [ ] `wait_navigation`: Wait for a page load or navigation to complete.
+
+### Assertions (Test Mode)
+- [ ] `assert_visible` / `assert_not_visible`: Assert element visibility.
+- [ ] `assert_text`: Assert text content matches.
+- [ ] `assert_eval`: Assert the result of a JS evaluation.
+
+### System
+- [ ] `screenshot`: Capture a screenshot.
+- [ ] `clear_cookies`: Clear browser cookies.
+- [ ] `set_headers`: Set custom HTTP headers.
+
+## License
+
+[Add License Information Here]
