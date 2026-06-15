@@ -16,6 +16,7 @@ type GlobalConfig struct {
 
 type Step struct {
 	Action    string            `yaml:"action" json:"action" toml:"action"`
+	Name      string            `yaml:"name,omitempty" json:"name,omitempty" toml:"name,omitempty"`
 	URL       string            `yaml:"url,omitempty" json:"url,omitempty" toml:"url,omitempty"`
 	Selector  string            `yaml:"selector,omitempty" json:"selector,omitempty" toml:"selector,omitempty"`
 	Value     string            `yaml:"value,omitempty" json:"value,omitempty" toml:"value,omitempty"`

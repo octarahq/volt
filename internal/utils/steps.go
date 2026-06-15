@@ -2,12 +2,13 @@ package utils
 
 import (
 	"fmt"
+	"volt/internal/engine"
 	"volt/internal/types"
 
 	"github.com/playwright-community/playwright-go"
 )
 
-func ProcessStep(page playwright.Page, step types.Step) (string, error) {
+func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Step) (string, error) {
 	switch step.Action {
 	case "navigate":
 		if _, err := page.Goto(step.URL); err != nil {
@@ -29,6 +30,89 @@ func ProcessStep(page playwright.Page, step types.Step) (string, error) {
 			return "", fmt.Errorf("Press '%s' on %s (Error: %v)", step.Value, step.Selector, err)
 		}
 		return fmt.Sprintf("Press '%s' on %s", step.Value, step.Selector), nil
+	case "hover":
+		if err := page.Locator(step.Selector).Hover(); err != nil {
+			return "", fmt.Errorf("Hover on %s (Error: %v)", step.Selector, err)
+		}
+		return fmt.Sprintf("Hover on %s", step.Selector), nil
+	case "check":
+		if err := page.Locator(step.Selector).Check(); err != nil {
+			return "", fmt.Errorf("Check %s (Error: %v)", step.Selector, err)
+		}
+		return fmt.Sprintf("Check %s", step.Selector), nil
+	case "uncheck":
+		if err := page.Locator(step.Selector).Uncheck(); err != nil {
+			return "", fmt.Errorf("Uncheck %s (Error: %v)", step.Selector, err)
+		}
+		return fmt.Sprintf("Uncheck %s", step.Selector), nil
+	case "select":
+		if _, err := page.Locator(step.Selector).SelectOption(playwright.SelectOptionValues{Values: playwright.StringSlice(step.Value)}); err != nil {
+			return "", fmt.Errorf("Select '%s' in %s (Error: %v)", step.Value, step.Selector, err)
+		}
+		return fmt.Sprintf("Select '%s' in %s", step.Value, step.Selector), nil
+	case "upload":
+		if err := page.Locator(step.Selector).SetInputFiles(step.File); err != nil {
+			return "", fmt.Errorf("Upload file '%s' to %s (Error: %v)", step.File, step.Selector, err)
+		}
+		return fmt.Sprintf("Upload file '%s' to %s", step.File, step.Selector), nil
+	case "log":
+		return fmt.Sprintf("Console : %s", step.Message), nil
+	case "store_value":
+		name := step.Name
+		value := step.As
+
+		state.SetVar(name, value)
+		return fmt.Sprintf("Store value in %s as '%s'", name, value), nil
+	case "store_text":
+		name := step.Name
+
+		value, err := page.Locator(step.Selector).TextContent()
+		if err != nil {
+			return "", fmt.Errorf("Store text from %s (Error: %v)", step.Selector, err)
+		}
+
+		state.SetVar(name, value)
+		return fmt.Sprintf("Store text in %s as '%s'", name, value), nil
+	case "store_attribute":
+		name := step.Name
+
+		value, err := page.Locator(step.Selector).GetAttribute(step.Attribute)
+		if err != nil {
+			return "", fmt.Errorf("Store attribute '%s' from %s (Error: %v)", step.Value, step.Selector, err)
+		}
+
+		state.SetVar(name, value)
+		return fmt.Sprintf("Store text in %s as '%s'", name, value), nil
+	case "store_eval":
+		name := step.Name
+
+		value, err := page.Evaluate(step.Value)
+		if err != nil {
+			return "", fmt.Errorf("Store eval of %s (Error: %v)", step.Value, err)
+		}
+
+		stringValue := fmt.Sprint(value)
+		state.SetVar(name, stringValue)
+		return fmt.Sprintf("Store eval in %s as '%s'", name, stringValue), nil
+	case "scroll":
+		if step.Selector != "" {
+			if err := page.Locator(step.Selector).ScrollIntoViewIfNeeded(); err != nil {
+				return "", fmt.Errorf("Scroll to %s (Error: %v)", step.Selector, err)
+			}
+			return fmt.Sprintf("Scroll to %s", step.Selector), nil
+		} else if step.Value == "bottom" {
+			if _, err := page.Evaluate("window.scrollTo(0, document.body.scrollHeight)"); err != nil {
+				return "", fmt.Errorf("Scroll to bottom (Error: %v)", err)
+			}
+			return "Scroll to bottom", nil
+		} else if step.Value == "top" {
+			if _, err := page.Evaluate("window.scrollTo(0, 0)"); err != nil {
+				return "", fmt.Errorf("Scroll to top (Error: %v)", err)
+			}
+			return "Scroll to top", nil
+		}
+		return "", fmt.Errorf("Scroll action requires a selector, or value 'top' or 'bottom'")
+
 	default:
 		return "", fmt.Errorf("Action: %s (Not implemented)", step.Action)
 	}

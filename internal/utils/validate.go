@@ -45,7 +45,7 @@ func ValidateScript(script *types.VoltScript) []error {
 func validateSteps(steps []types.Step, contextPath string) []error {
 	var errs []error
 	for i, step := range steps {
-		path := fmt.Sprintf("%s[%d]", contextPath, i)
+		path := fmt.Sprintf("%s[%d]", contextPath, i+1)
 		if step.Action == "" {
 			errs = append(errs, fmt.Errorf("%s: 'action' is required", path))
 			continue
@@ -55,9 +55,45 @@ func validateSteps(steps []types.Step, contextPath string) []error {
 			if step.URL == "" {
 				errs = append(errs, fmt.Errorf("%s: navigate action requires 'url'", path))
 			}
-		case "click", "hover", "check", "uncheck", "scroll":
+		case "click", "hover", "check", "uncheck":
 			if step.Selector == "" {
 				errs = append(errs, fmt.Errorf("%s: %s action requires 'selector'", path, step.Action))
+			}
+		case "scroll":
+			if step.Selector == "" && step.Value != "top" && step.Value != "bottom" {
+				errs = append(errs, fmt.Errorf("%s: scroll action requires 'selector' or value 'top'/'bottom'", path))
+			}
+		case "log":
+			if step.Message == "" {
+				errs = append(errs, fmt.Errorf("%s: log action requires 'message'", path))
+			}
+		case "store_text":
+			if step.Name == "" {
+				errs = append(errs, fmt.Errorf("%s: store_text action requires variable name 'name'", path))
+			}
+			if step.Selector == "" {
+				errs = append(errs, fmt.Errorf("%s: store_text action requires 'selector'", path))
+			}
+		case "store_attribute":
+			if step.Name == "" {
+				errs = append(errs, fmt.Errorf("%s: store_attribute action requires variable name 'name'", path))
+			}
+			if step.Selector == "" && step.Attribute == "" {
+				errs = append(errs, fmt.Errorf("%s: store_attribute action requires 'selector' and 'attribute'", path))
+			}
+		case "store_eval":
+			if step.Name == "" {
+				errs = append(errs, fmt.Errorf("%s: store_eval action requires variable name 'name'", path))
+			}
+			if step.Value == "" {
+				errs = append(errs, fmt.Errorf("%s: store_eval action requires 'value'", path))
+			}
+		case "store_value":
+			if step.Name == "" {
+				errs = append(errs, fmt.Errorf("%s: store_value action requires variable name 'name'", path))
+			}
+			if step.As == "" {
+				errs = append(errs, fmt.Errorf("%s: store_value action requires 'as'", path))
 			}
 		case "type":
 			if step.Selector == "" || step.Value == "" {
@@ -98,6 +134,8 @@ func validateSteps(steps []types.Step, contextPath string) []error {
 				errs = append(errs, fmt.Errorf("%s: for_each action requires 'do' steps", path))
 			}
 			errs = append(errs, validateSteps(step.Do, path+".do")...)
+		default:
+			errs = append(errs, fmt.Errorf("%s: Action: %s (Not implemented)", path, step.Action))
 		}
 	}
 	return errs
