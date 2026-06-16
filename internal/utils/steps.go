@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 	"volt/internal/engine"
 	"volt/internal/types"
 
@@ -192,6 +193,20 @@ func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Ste
 			return "", fmt.Errorf("Remove header '%s' (Error: %v)", name, err)
 		}
 		return fmt.Sprintf("Remove header '%s'", name), nil
+	case "wait":
+		duration := step.Duration
+		time.Sleep(time.Duration(duration) * time.Second)
+		return fmt.Sprintf("Wait for %d seconds", duration), nil
+	case "wait_visible":
+		if err := page.Locator(step.Selector).WaitFor(); err != nil {
+			return "", fmt.Errorf("Wait for %s to be visible (Error: %v)", step.Selector, err)
+		}
+		return fmt.Sprintf("Wait for %s to be visible", step.Selector), nil
+	case "wait_hidden":
+		if err := page.Locator(step.Selector).WaitFor(playwright.LocatorWaitForOptions{State: playwright.WaitForSelectorStateHidden}); err != nil {
+			return "", fmt.Errorf("Wait for %s to be hidden (Error: %v)", step.Selector, err)
+		}
+		return fmt.Sprintf("Wait for %s to be hidden", step.Selector), nil
 
 	default:
 		return "", fmt.Errorf("Action: %s (Not implemented)", step.Action)

@@ -144,9 +144,8 @@ Here is the implementation status of the actions planned for Volt:
 - [x] `log`: Console logging.
 
 ### Waiting & Delays
-- [ ] `wait`: Fixed time delay.
-- [ ] `wait_visible` / `wait_hidden`: Wait for an element's visibility state.
-- [ ] `wait_navigation`: Wait for a page load or navigation to complete.
+- [x] `wait`: Fixed time delay.
+- [x] `wait_visible` / `wait_hidden`: Wait for an element's visibility state.
 
 ### Assertions (Test Mode)
 - [ ] `assert_visible` / `assert_not_visible`: Assert element visibility.

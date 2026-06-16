@@ -165,6 +165,18 @@ func validateSteps(steps []types.Step, contextPath string) []error {
 			if step.Name == "" {
 				errs = append(errs, fmt.Errorf("%s: remove_header action requires 'name'", path))
 			}
+		case "wait":
+			if step.Duration == 0 {
+				errs = append(errs, fmt.Errorf("%s: wait action requires 'duration'", path))
+			}
+		case "wait_visible":
+			if step.Selector == "" {
+				errs = append(errs, fmt.Errorf("%s: wait_visible action requires 'selector'", path))
+			}
+		case "wait_hidden":
+			if step.Selector == "" {
+				errs = append(errs, fmt.Errorf("%s: wait_hidden action requires 'selector'", path))
+			}
 		default:
 			errs = append(errs, fmt.Errorf("%s: Action: %s (Not implemented)", path, step.Action))
 		}
