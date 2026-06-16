@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"time"
 	"volt/internal/engine"
 	"volt/internal/utils"
 
@@ -128,6 +129,16 @@ func Run(path string) {
 					fmt.Printf("  [%d/%d] ✘ Captcha detected! Stopping script as requested by ErrorIfCaptcha.\n", i+1, nbSteps)
 					return
 				}
+			}
+
+			slowmo := script.Config.SlowMo
+			if slowmo != "" {
+				d, err := time.ParseDuration(slowmo)
+				if err != nil {
+					fmt.Printf("  [%d/%d] ✘ Invalid SlowMo duration %q: %v\n", i+1, nbSteps, slowmo, err)
+					return
+				}
+				time.Sleep(d)
 			}
 		}
 	}
