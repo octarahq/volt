@@ -135,7 +135,7 @@ Here is the implementation status of the actions planned for Volt:
 - [x] `store_eval`: Store the result of a JS evaluation into a variable.
 
 ### Scraping
-- [ ] `scrape`: Extract structured list data into JSON/CSV.
+- [x] `scrape`: Extract structured list data into JSON/CSV.
 
 ### Logic and Flows
 - [ ] `if`: Conditional execution block.

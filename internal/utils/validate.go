@@ -177,6 +177,10 @@ func validateSteps(steps []types.Step, contextPath string) []error {
 			if step.Selector == "" {
 				errs = append(errs, fmt.Errorf("%s: wait_hidden action requires 'selector'", path))
 			}
+		case "scrape":
+			if step.Scrape == nil || len(step.Scrape.Fields) == 0 {
+				errs = append(errs, fmt.Errorf("%s: scrape action requires 'scrape.fields'", path))
+			}
 		default:
 			errs = append(errs, fmt.Errorf("%s: Action: %s (Not implemented)", path, step.Action))
 		}

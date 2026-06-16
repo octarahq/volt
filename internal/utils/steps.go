@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 	"volt/internal/engine"
 	"volt/internal/types"
@@ -215,6 +217,114 @@ func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Ste
 			return "", fmt.Errorf("Wait for %s to be hidden (Error: %v)", step.Selector, err)
 		}
 		return fmt.Sprintf("Wait for %s to be hidden", step.Selector), nil
+
+	case "scrape":
+		if step.Scrape == nil {
+			return "", fmt.Errorf("Scrape action requires 'scrape' configuration")
+		}
+
+		var results interface{}
+		if step.Scrape.Parent != "" {
+			elements, err := page.Locator(step.Scrape.Parent).All()
+			if err != nil {
+				return "", fmt.Errorf("Finding parent elements %s (Error: %v)", step.Scrape.Parent, err)
+			}
+
+			items := make([]map[string]string, 0)
+			for _, el := range elements {
+				item := make(map[string]string)
+				for field, fieldSelector := range step.Scrape.Fields {
+					selector := fieldSelector
+					attribute := ""
+					if strings.Contains(selector, "@") {
+						parts := strings.SplitN(selector, "@", 2)
+						selector = strings.TrimSpace(parts[0])
+						attribute = strings.TrimSpace(parts[1])
+					}
+
+					var val string
+					var err error
+					var locator playwright.Locator
+					if selector != "" {
+						locator = el.Locator(selector).First()
+					} else {
+						locator = el
+					}
+
+					if attribute != "" {
+						val, err = locator.GetAttribute(attribute)
+					} else {
+						val, err = locator.TextContent()
+					}
+
+					if err == nil {
+						item[field] = strings.TrimSpace(val)
+					} else {
+						item[field] = ""
+					}
+				}
+				items = append(items, item)
+			}
+			results = items
+		} else {
+			item := make(map[string]string)
+			for field, fieldSelector := range step.Scrape.Fields {
+				selector := fieldSelector
+				attribute := ""
+				if strings.Contains(selector, "@") {
+					parts := strings.SplitN(selector, "@", 2)
+					selector = strings.TrimSpace(parts[0])
+					attribute = strings.TrimSpace(parts[1])
+				}
+
+				var val string
+				var err error
+				if selector != "" {
+					locator := page.Locator(selector).First()
+					if attribute != "" {
+						val, err = locator.GetAttribute(attribute)
+					} else {
+						val, err = locator.TextContent()
+					}
+				} else {
+					val = ""
+					err = fmt.Errorf("selector is required for single item scrape field")
+				}
+
+				if err == nil {
+					item[field] = strings.TrimSpace(val)
+				} else {
+					item[field] = ""
+				}
+			}
+			results = item
+		}
+
+		jsonBytes, err := json.MarshalIndent(results, "", "  ")
+		if err != nil {
+			return "", fmt.Errorf("Serializing scrape results (Error: %v)", err)
+		}
+
+		if step.Name != "" {
+			state.SetVar(step.Name, string(jsonBytes))
+		}
+
+		if script.Config.Output != "" {
+			filename := "scraped_data.json"
+			if step.Name != "" {
+				filename = fmt.Sprintf("scraped_%s.json", step.Name)
+			}
+			path := filepath.Join(script.Config.Output, filename)
+			if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+				return "", fmt.Errorf("Create output directory (Error: %v)", err)
+			}
+			if err := os.WriteFile(path, jsonBytes, 0644); err != nil {
+				return "", fmt.Errorf("Write scrape results to %s (Error: %v)", path, err)
+			}
+			return fmt.Sprintf("Scraped data saved to %s", path), nil
+		}
+
+		return "Scraped data (stored in memory)", nil
 
 	default:
 		return "", fmt.Errorf("Action: %s (Not implemented)", step.Action)
