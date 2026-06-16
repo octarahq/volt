@@ -35,6 +35,15 @@ func Run(path string) {
 		fmt.Println(line)
 	}
 
+	var scriptTimeout time.Duration
+	if strings.TrimSpace(script.Config.Timeout) != "" {
+		scriptTimeout, err = time.ParseDuration(strings.TrimSpace(script.Config.Timeout))
+		if err != nil {
+			addToLogs(fmt.Sprintf("✘ Invalid Timout duration %q: %v", script.Config.Timeout, err))
+			return
+		}
+	}
+
 	browsers := script.Config.Browsers
 	if len(browsers) == 0 {
 		browsers = append(browsers, "chromium")
@@ -123,9 +132,15 @@ func Run(path string) {
 		page.AddInitScript(playwright.Script{Content: playwright.String(stealthScript)})
 
 		state := engine.NewEngineState(script.Vars)
+		start := time.Now()
 
 		nbSteps := len(script.Steps)
 		for i, s := range script.Steps {
+			if scriptTimeout > 0 && time.Since(start) > scriptTimeout {
+				addToLogs(fmt.Sprintf("  [%d/%d] ✘ Script timeout exceeded after %s", i+1, nbSteps, scriptTimeout))
+				return
+			}
+
 			state.InterpolateStep(&s)
 			line, err := utils.ProcessStep(page, state, s, script.Config.Humanize, script)
 			if err != nil {
@@ -150,6 +165,11 @@ func Run(path string) {
 					return
 				}
 				time.Sleep(d)
+			}
+
+			if scriptTimeout > 0 && time.Since(start) > scriptTimeout {
+				addToLogs(fmt.Sprintf("  [%d/%d] ✘ Script timeout exceeded after %s", i+1, nbSteps, scriptTimeout))
+				return
 			}
 		}
 	}
