@@ -8,10 +8,11 @@ import (
 	"volt/internal/engine"
 	"volt/internal/types"
 
+	"github.com/google/uuid"
 	"github.com/playwright-community/playwright-go"
 )
 
-func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Step, humanize bool) (string, error) {
+func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Step, humanize bool, script types.VoltScript) (string, error) {
 	switch step.Action {
 	case "navigate":
 		if _, err := page.Goto(step.URL); err != nil {
@@ -131,7 +132,14 @@ func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Ste
 	case "screenshot":
 		path := step.Pathname
 		if path == "" {
-			absPath, err := filepath.Abs("screenshot.png")
+			var absPath string
+			var err error
+			filename := fmt.Sprintf("%s.png", uuid.NewString())
+			if script.Config.Output != "" {
+				absPath, err = filepath.Abs(fmt.Sprintf("%s/screenshots/%s", script.Config.Output, filename))
+			} else {
+				absPath, err = filepath.Abs(filename)
+			}
 			if err != nil {
 				return "", fmt.Errorf("Get absolute screenshot path (Error: %v)", err)
 			}

@@ -84,7 +84,7 @@ The `config` block allows you to define global settings for your automation scri
 - `headless` (boolean): Run the browser in headless mode (invisible).
 - `slow_mo` (string): Delay between Playwright operations. Useful for local debugging (e.g., `"500ms"`).
 - `timeout` (string): Maximum execution time for the automation script.
-- `output` (string): Define an output directory or file path for saved data (like screenshots or scraped data).
+- `output` (string): Define an output directory path for saved data (like screenshots or scraped data).
 - `browsers` (list of strings): A list of browsers to execute the automation on (e.g., `["chromium", "firefox", "webkit"]`). The script will be run for each browser specified.
 
 Example `script.yaml`:

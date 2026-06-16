@@ -3,6 +3,8 @@ package commands
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 	"volt/internal/engine"
 	"volt/internal/utils"
@@ -25,6 +27,14 @@ func Run(path string) {
 
 	utils.CheckScript(&script)
 
+	var logs []string
+	addToLogs := func(line string) {
+		if script.Config.Output != "" {
+			logs = append(logs, line)
+		}
+		fmt.Println(line)
+	}
+
 	browsers := script.Config.Browsers
 	if len(browsers) == 0 {
 		browsers = append(browsers, "chromium")
@@ -32,20 +42,20 @@ func Run(path string) {
 
 	for _, b := range browsers {
 
-		fmt.Printf("Volt : %s (%s)\n", script.Name, b)
-		fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-		fmt.Printf("Config : Headless=%t\n", script.Config.Headless)
-		fmt.Println()
+		addToLogs(fmt.Sprintf("Volt : %s (%s)", script.Name, b))
+		addToLogs("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+		addToLogs(fmt.Sprintf("Config : Headless=%t", script.Config.Headless))
+		addToLogs("")
 
 		err = playwright.Install()
 		if err != nil {
-			fmt.Printf("✘ Playwright install error: %v\n", err)
+			addToLogs(fmt.Sprintf("✘ Playwright install error: %v", err))
 			return
 		}
 
 		pw, err := playwright.Run()
 		if err != nil {
-			fmt.Printf("✘ Playwright start error: %v\n", err)
+			addToLogs(fmt.Sprintf("✘ Playwright start error: %v", err))
 			return
 		}
 		defer pw.Stop()
@@ -69,7 +79,7 @@ func Run(path string) {
 			})
 		}
 		if err != nil {
-			fmt.Printf("✘ Browser launch error: %v\n", err)
+			addToLogs(fmt.Sprintf("✘ Browser launch error: %v", err))
 			return
 		}
 		defer browser.Close()
@@ -98,15 +108,15 @@ func Run(path string) {
 		case "chromium":
 			newPageOptions.UserAgent = playwright.String("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 		case "webkit":
-			fmt.Println("Warning: If you are not browsing your own site, WebKit is very easy to detect as a bot")
+			addToLogs("Warning: If you are not browsing your own site, WebKit is very easy to detect as a bot")
 			newPageOptions.UserAgent = playwright.String("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15")
 		case "firefox":
-			fmt.Println("Warning: If you are not browsing your own site, Firefox is very easy to detect as a bot")
+			addToLogs("Warning: If you are not browsing your own site, Firefox is very easy to detect as a bot")
 		}
 
 		page, err := browser.NewPage(newPageOptions)
 		if err != nil {
-			fmt.Printf("✘ Page creation error: %v\n", err)
+			addToLogs(fmt.Sprintf("✘ Page creation error: %v", err))
 			return
 		}
 
@@ -117,16 +127,16 @@ func Run(path string) {
 		nbSteps := len(script.Steps)
 		for i, s := range script.Steps {
 			state.InterpolateStep(&s)
-			line, err := utils.ProcessStep(page, state, s, script.Config.Humanize)
+			line, err := utils.ProcessStep(page, state, s, script.Config.Humanize, script)
 			if err != nil {
-				fmt.Printf("  [%d/%d] ✘ %s\n", i+1, nbSteps, err)
+				addToLogs(fmt.Sprintf("  [%d/%d] ✘ %s", i+1, nbSteps, err))
 				return
 			}
-			fmt.Printf("  [%d/%d] ✔ %s\n", i+1, nbSteps, line)
+			addToLogs(fmt.Sprintf("  [%d/%d] ✔ %s", i+1, nbSteps, line))
 
 			if script.Config.ErrorIfCaptcha {
 				if utils.CheckForCaptcha(page) {
-					fmt.Printf("  [%d/%d] ✘ Captcha detected! Stopping script as requested by ErrorIfCaptcha.\n", i+1, nbSteps)
+					addToLogs(fmt.Sprintf("  [%d/%d] ✘ Captcha detected! Stopping script as requested by ErrorIfCaptcha.", i+1, nbSteps))
 					return
 				}
 			}
@@ -135,11 +145,41 @@ func Run(path string) {
 			if slowmo != "" {
 				d, err := time.ParseDuration(slowmo)
 				if err != nil {
-					fmt.Printf("  [%d/%d] ✘ Invalid SlowMo duration %q: %v\n", i+1, nbSteps, slowmo, err)
+					addToLogs(fmt.Sprintf("  [%d/%d] ✘ Invalid SlowMo duration %q: %v", i+1, nbSteps, slowmo, err))
+
 					return
 				}
 				time.Sleep(d)
 			}
+		}
+	}
+
+	outPath := strings.TrimSpace(script.Config.Output)
+	if outPath != "" {
+		fmt.Printf("Save output to %s/output.log\n", outPath)
+		if info, err := os.Stat(outPath); err != nil {
+			if os.IsNotExist(err) {
+				if err := os.MkdirAll(outPath, 0o755); err != nil {
+					fmt.Printf("✘ Unable to create output directory %s: %v\n", outPath, err)
+					return
+				}
+			} else {
+				fmt.Printf("✘ Cannot access output directory %s: %v\n", outPath, err)
+				return
+			}
+		} else if !info.IsDir() {
+			fmt.Printf("✘ Output path %s is not a directory\n", outPath)
+			return
+		}
+
+		logFilePath := filepath.Join(outPath, "output.log")
+		var logContent strings.Builder
+		for _, log := range logs {
+			logContent.WriteString(fmt.Sprintf("%s\n", log))
+		}
+		if err := os.WriteFile(logFilePath, []byte(logContent.String()), 0o644); err != nil {
+			fmt.Printf("✘ Unable to write log file %s: %v\n", logFilePath, err)
+			return
 		}
 	}
 }
