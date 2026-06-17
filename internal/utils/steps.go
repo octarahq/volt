@@ -11,6 +11,7 @@ import (
 	"volt/internal/engine"
 	"volt/internal/types"
 
+	"github.com/expr-lang/expr"
 	"github.com/google/uuid"
 	"github.com/playwright-community/playwright-go"
 )
@@ -341,15 +342,73 @@ func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Ste
 					return "", err
 				}
 				if result != "" {
-					if len(step.Do) > 1 {
-						logFunc(fmt.Sprintf("      [%d/%d] [%d/%d] ✔ %s", outerIdx, iterations, j+1, len(step.Do), result))
-					} else {
-						logFunc(fmt.Sprintf("      [%d/%d] ✔ %s", outerIdx, iterations, result))
-					}
+					logFunc(fmt.Sprintf("  [%d/%d] [%d/%d] ✔ %s", outerIdx, iterations, j+1, len(step.Do), result))
 				}
 			}
 		}
 		return fmt.Sprintf("Loop executed from %d to %d: ran %d iterations with %d step(s) each", from, to, iterations, len(step.Do)), nil
+	case "if":
+		condition := step.Condition
+
+		env := map[string]interface{}{
+			"false": false,
+			"true":  true,
+		}
+
+		for n, v := range state.Vars {
+			env[n] = v
+		}
+
+		program, err := expr.Compile(step.Condition, expr.Env(env))
+		if err != nil {
+			return "", fmt.Errorf("Invalid condition '%s' : %v", condition, err)
+		}
+
+		output, err := expr.Run(program, env)
+		if err != nil {
+			return "", fmt.Errorf("Execution error: %v", err)
+		}
+
+		var result bool
+		switch v := output.(type) {
+		case bool:
+			result = v
+		case string:
+			if v == "true" {
+				result = true
+			} else if v == "false" {
+				result = false
+			} else {
+				return "", fmt.Errorf("Condition '%s' returned a string \"%s\" which is not 'true' or 'false'. Make sure the condition evaluates to a boolean.", condition, v)
+			}
+		default:
+			return "", fmt.Errorf("Condition '%s' did not evaluate to a boolean (got %T: %v)", condition, output, output)
+		}
+
+		if result {
+			for j, s := range step.Then {
+				state.InterpolateStep(&s)
+				result, err := ProcessStep(page, state, s, humanize, script, logFunc)
+				if err != nil {
+					return "", err
+				}
+				if result != "" {
+					logFunc(fmt.Sprintf("      [%d/%d] ✔ %s", j+1, len(step.Then), result))
+				}
+			}
+		} else {
+			for j, s := range step.Else {
+				state.InterpolateStep(&s)
+				result, err := ProcessStep(page, state, s, humanize, script, logFunc)
+				if err != nil {
+					return "", err
+				}
+				if result != "" {
+					logFunc(fmt.Sprintf("      [%d/%d] ✔ %s", j+1, len(step.Else), result))
+				}
+			}
+		}
+		return "If executed", nil
 	default:
 		return "", fmt.Errorf("Action: %s (Not implemented)", step.Action)
 	}

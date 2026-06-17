@@ -48,26 +48,28 @@ Check the syntax and structure of your YAML file without running the browser:
 volt check path/to/script.yaml
 ```
 
-
 ### Schema Validation in Editors
 
 You don't need to configure your editor settings to get autocompletion and validation. Simply add the schema link at the very top of your script file.
 
 **For YAML files** (`script.yaml`):
+
 ```yaml
 # yaml-language-server: $schema=https://raw.githubusercontent.com/octarahq/volt/main/volt-schema.json
 # ...
 ```
 
 **For JSON files** (`script.json`):
+
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/octarahq/volt/main/volt-schema.json",
+  "$schema": "https://raw.githubusercontent.com/octarahq/volt/main/volt-schema.json"
   // ...
 }
 ```
 
 **For TOML files** (`script.toml`):
+
 ```toml
 #:schema https://raw.githubusercontent.com/octarahq/volt/main/scripts/volt-schema.json
 # ...
@@ -100,7 +102,7 @@ config:
 steps:
   - action: "navigate"
     url: "https://example.com"
-  
+
   - action: "type"
     selector: "input[name='q']"
     value: "Volt automation"
@@ -118,6 +120,7 @@ steps:
 Here is the implementation status of the actions planned for Volt:
 
 ### Interactions
+
 - [x] `navigate`: Go to a specific URL (`url`).
 - [x] `click`: Click on an element targeting a CSS selector (`selector`).
 - [x] `hover`: Hover over an element (`selector`).
@@ -129,30 +132,36 @@ Here is the implementation status of the actions planned for Volt:
 - [x] `scroll`: Scroll the page (top, bottom, or to a specific selector).
 
 ### Variables & RPA
+
 - [x] `store_value`: Store constant value into a variable.
 - [x] `store_text`: Store text content of an element into a variable.
 - [x] `store_attribute`: Store an attribute of an element into a variable.
 - [x] `store_eval`: Store the result of a JS evaluation into a variable.
 
 ### Scraping
+
 - [x] `scrape`: Extract structured list data into JSON/CSV.
 
 ### Logic and Flows
-- [ ] `if`: Conditional execution block.
-- [ ] `loop`: Indexed numerical loop.
+
+- [x] `if`: Conditional execution block.
+- [x] `loop`: Indexed numerical loop.
 - [ ] `for_each`: Iterate over a list.
 - [x] `log`: Console logging.
 
 ### Waiting & Delays
+
 - [x] `wait`: Fixed time delay.
 - [x] `wait_visible` / `wait_hidden`: Wait for an element's visibility state.
 
 ### Assertions (Test Mode)
+
 - [ ] `assert_visible` / `assert_not_visible`: Assert element visibility.
 - [ ] `assert_text`: Assert text content matches.
 - [ ] `assert_eval`: Assert the result of a JS evaluation.
 
 ### System
+
 - [x] `screenshot`: Capture a screenshot.
 - [x] `clear_cookies`: Clear browser cookies.
 - [x] `add_header`: Add custom HTTP header.
