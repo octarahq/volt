@@ -237,6 +237,15 @@ func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Ste
 			return "", fmt.Errorf("Assertion failed: %s is not hidden", step.Selector)
 		}
 		return fmt.Sprintf("Asserted %s is hidden", step.Selector), nil
+	case "assert_text":
+		text, err := page.Locator(step.Selector).TextContent()
+		if err != nil {
+			return "", fmt.Errorf("Get text of %s (Error: %v)", step.Selector, err)
+		}
+		if text != step.Value {
+			return "", fmt.Errorf("Assertion failed: expected '%s', got '%s'", step.Value, text)
+		}
+		return fmt.Sprintf("Asserted text of %s is '%s'", step.Selector, step.Value), nil
 
 	case "scrape":
 		if step.Scrape == nil {

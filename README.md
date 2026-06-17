@@ -157,7 +157,7 @@ Here is the implementation status of the actions planned for Volt:
 ### Assertions (Test Mode)
 
 - [x] `assert_visible` / `assert_hidden`: Assert element visibility.
-- [ ] `assert_text`: Assert text content matches.
+- [x] `assert_text`: Assert text content matches.
 - [ ] `assert_eval`: Assert the result of a JS evaluation.
 
 ### System
