@@ -347,6 +347,29 @@ func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Ste
 			}
 		}
 		return fmt.Sprintf("Loop executed from %d to %d: ran %d iterations with %d step(s) each", from, to, iterations, len(step.Do)), nil
+	case "for_each":
+		items := step.ForEach
+		iterator := step.Iterator
+		if iterator == "" {
+			iterator = "item"
+		}
+
+		iterations := len(items)
+		for i, item := range items {
+			state.SetVar(iterator, item)
+			outerIdx := i + 1
+			for j, s := range step.Do {
+				state.InterpolateStep(&s)
+				result, err := ProcessStep(page, state, s, humanize, script, logFunc)
+				if err != nil {
+					return "", err
+				}
+				if result != "" {
+					logFunc(fmt.Sprintf("  [%d/%d] [%d/%d] ✔ %s", outerIdx, iterations, j+1, len(step.Do), result))
+				}
+			}
+		}
+		return fmt.Sprintf("ForEach executed over %d items with %d step(s) each", iterations, len(step.Do)), nil
 	case "if":
 		condition := step.Condition
 
