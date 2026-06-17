@@ -32,6 +32,8 @@ go run github.com/playwright-community/playwright-go/cmd/playwright@latest insta
 
 Volt provides a command-line interface to interact with your scripts.
 
+**Documentation**: https://github.com/octarahq/volt/wiki
+
 ### Run a Script
 
 Execute an automation script:
