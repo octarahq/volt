@@ -246,6 +246,24 @@ func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Ste
 			return "", fmt.Errorf("Assertion failed: expected '%s', got '%s'", step.Value, text)
 		}
 		return fmt.Sprintf("Asserted text of %s is '%s'", step.Selector, step.Value), nil
+	case "assert_eval":
+		value, err := page.Evaluate(step.Value)
+		if err != nil {
+			return "", fmt.Errorf("Evaluate %s (Error: %v)", step.Value, err)
+		}
+		
+		var result bool
+		switch v := value.(type) {
+		case bool:
+			result = v
+		default:
+			return "", fmt.Errorf("Assertion failed: script '%s' did not return a boolean (got %T: %v)", step.Value, value, value)
+		}
+
+		if !result {
+			return "", fmt.Errorf("Assertion failed: script '%s' evaluated to false", step.Value)
+		}
+		return fmt.Sprintf("Asserted eval of '%s' is true", step.Value), nil
 
 	case "scrape":
 		if step.Scrape == nil {
