@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 	"volt/internal/engine"
@@ -14,7 +15,7 @@ import (
 	"github.com/playwright-community/playwright-go"
 )
 
-func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Step, humanize bool, script types.VoltScript) (string, error) {
+func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Step, humanize bool, script types.VoltScript, logFunc func(string)) (string, error) {
 	switch step.Action {
 	case "navigate":
 		if _, err := page.Goto(step.URL); err != nil {
@@ -325,7 +326,30 @@ func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Ste
 		}
 
 		return "Scraped data (stored in memory)", nil
+	case "loop":
+		from := step.From
+		to := step.To
 
+		iterations := to - from + 1
+		for i := from; i <= to; i++ {
+			state.SetVar("loop.index", strconv.Itoa(i))
+			outerIdx := i - from + 1
+			for j, s := range step.Do {
+				state.InterpolateStep(&s)
+				result, err := ProcessStep(page, state, s, humanize, script, logFunc)
+				if err != nil {
+					return "", err
+				}
+				if result != "" {
+					if len(step.Do) > 1 {
+						logFunc(fmt.Sprintf("      [%d/%d] [%d/%d] ✔ %s", outerIdx, iterations, j+1, len(step.Do), result))
+					} else {
+						logFunc(fmt.Sprintf("      [%d/%d] ✔ %s", outerIdx, iterations, result))
+					}
+				}
+			}
+		}
+		return fmt.Sprintf("Loop executed from %d to %d: ran %d iterations with %d step(s) each", from, to, iterations, len(step.Do)), nil
 	default:
 		return "", fmt.Errorf("Action: %s (Not implemented)", step.Action)
 	}

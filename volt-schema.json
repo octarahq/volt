@@ -53,26 +53,6 @@
         "headless"
       ]
     },
-    "LoopConfig": {
-      "properties": {
-        "from": {
-          "type": "integer"
-        },
-        "to": {
-          "type": "integer"
-        },
-        "index": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "from",
-        "to",
-        "index"
-      ]
-    },
     "Position": {
       "properties": {
         "x": {
@@ -159,9 +139,6 @@
           },
           "type": "array"
         },
-        "loop": {
-          "$ref": "#/$defs/LoopConfig"
-        },
         "for_each": {
           "items": {
             "type": "string"
@@ -170,12 +147,6 @@
         },
         "iterator": {
           "type": "string"
-        },
-        "do": {
-          "items": {
-            "$ref": "#/$defs/Step"
-          },
-          "type": "array"
         },
         "message": {
           "type": "string"
@@ -197,6 +168,18 @@
         },
         "position": {
           "$ref": "#/$defs/Position"
+        },
+        "from": {
+          "type": "integer"
+        },
+        "to": {
+          "type": "integer"
+        },
+        "do": {
+          "items": {
+            "$ref": "#/$defs/Step"
+          },
+          "type": "array"
         }
       },
       "additionalProperties": false,

@@ -134,9 +134,14 @@ func validateSteps(steps []types.Step, contextPath string) []error {
 				errs = append(errs, validateSteps(step.Else, path+".else")...)
 			}
 		case "loop":
-			if step.Loop == nil || step.Loop.Index == "" {
-				errs = append(errs, fmt.Errorf("%s: loop action requires 'loop.index'", path))
+			if step.To == 0 {
+				errs = append(errs, fmt.Errorf("%s: loop action requires 'to'", path))
+			} else {
+				if step.From > step.To {
+					errs = append(errs, fmt.Errorf("%s: Loop range is invalid: from %d is greater than to %d", path, step.From, step.To))
+				}
 			}
+
 			if len(step.Do) == 0 {
 				errs = append(errs, fmt.Errorf("%s: loop action requires 'do' steps", path))
 			}

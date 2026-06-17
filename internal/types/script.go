@@ -31,16 +31,18 @@ type Step struct {
 	Condition string            `yaml:"condition,omitempty" json:"condition,omitempty" toml:"condition,omitempty"`
 	Then      []Step            `yaml:"then,omitempty" json:"then,omitempty" toml:"then,omitempty"`
 	Else      []Step            `yaml:"else,omitempty" json:"else,omitempty" toml:"else,omitempty"`
-	Loop      *LoopConfig       `yaml:"loop,omitempty" json:"loop,omitempty" toml:"loop,omitempty"`
 	ForEach   []string          `yaml:"for_each,omitempty" json:"for_each,omitempty" toml:"for_each,omitempty"`
 	Iterator  string            `yaml:"iterator,omitempty" json:"iterator,omitempty" toml:"iterator,omitempty"`
-	Do        []Step            `yaml:"do,omitempty" json:"do,omitempty" toml:"do,omitempty"`
 	Message   string            `yaml:"message,omitempty" json:"message,omitempty" toml:"message,omitempty"`
 	Scrape    *ScrapeConfig     `yaml:"scrape,omitempty" json:"scrape,omitempty" toml:"scrape,omitempty"`
 	Assert    *AssertConfig     `yaml:"assert,omitempty" json:"assert,omitempty" toml:"assert,omitempty"`
 	Headers   map[string]string `yaml:"headers,omitempty" json:"headers,omitempty" toml:"headers,omitempty"`
 	Pathname  string            `yaml:"pathname,omitempty" json:"pathname,omitempty" toml:"pathname,omitempty"`
 	Position  *Position         `yaml:"position,omitempty" json:"position,omitempty" toml:"position,omitempty"`
+
+	From int    `yaml:"from,omitempty" json:"from,omitempty" toml:"from,omitempty"`
+	To   int    `yaml:"to,omitempty" json:"to,omitempty" toml:"to,omitempty"`
+	Do   []Step `yaml:"do,omitempty" json:"do,omitempty" toml:"do,omitempty"`
 }
 
 type ScrapeConfig struct {
@@ -54,12 +56,6 @@ type Position struct {
 	Width    int  `yaml:"width,omitempty" json:"width,omitempty" toml:"width,omitempty"`
 	Height   int  `yaml:"height,omitempty" json:"height,omitempty" toml:"height,omitempty"`
 	FullPage bool `yaml:"full_page,omitempty" json:"full_page,omitempty" toml:"full_page,omitempty"`
-}
-
-type LoopConfig struct {
-	From  int    `yaml:"from" json:"from" toml:"from"`
-	To    int    `yaml:"to" json:"to" toml:"to"`
-	Index string `yaml:"index" json:"index" toml:"index"`
 }
 
 type AssertConfig struct {

@@ -34,7 +34,7 @@ func (s *EngineState) Interpolate(text string) string {
 	if text == "" {
 		return text
 	}
-	re := regexp.MustCompile(`\{\{\s*([a-zA-Z0-9_]+)\s*\}\}`)
+	re := regexp.MustCompile(`\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}`)
 	return re.ReplaceAllStringFunc(text, func(match string) string {
 		varName := re.FindStringSubmatch(match)[1]
 		if val, ok := s.Vars[varName]; ok {

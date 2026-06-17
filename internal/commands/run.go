@@ -142,7 +142,7 @@ func Run(path string) {
 			}
 
 			state.InterpolateStep(&s)
-			line, err := utils.ProcessStep(page, state, s, script.Config.Humanize, script)
+			line, err := utils.ProcessStep(page, state, s, script.Config.Humanize, script, addToLogs)
 			if err != nil {
 				addToLogs(fmt.Sprintf("  [%d/%d] ✘ %s", i+1, nbSteps, err))
 				return
