@@ -146,7 +146,7 @@ Here is the implementation status of the actions planned for Volt:
 
 - [x] `if`: Conditional execution block.
 - [x] `loop`: Indexed numerical loop.
-- [ ] `for_each`: Iterate over a list.
+- [x] `for_each`: Iterate over a list.
 - [x] `log`: Console logging.
 
 ### Waiting & Delays
@@ -156,7 +156,7 @@ Here is the implementation status of the actions planned for Volt:
 
 ### Assertions (Test Mode)
 
-- [ ] `assert_visible` / `assert_not_visible`: Assert element visibility.
+- [x] `assert_visible` / `assert_hidden`: Assert element visibility.
 - [ ] `assert_text`: Assert text content matches.
 - [ ] `assert_eval`: Assert the result of a JS evaluation.
 

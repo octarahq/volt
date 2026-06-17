@@ -219,6 +219,24 @@ func ProcessStep(page playwright.Page, state *engine.EngineState, step types.Ste
 			return "", fmt.Errorf("Wait for %s to be hidden (Error: %v)", step.Selector, err)
 		}
 		return fmt.Sprintf("Wait for %s to be hidden", step.Selector), nil
+	case "assert_visible":
+		visible, err := page.Locator(step.Selector).IsVisible()
+		if err != nil {
+			return "", fmt.Errorf("Check visibility of %s (Error: %v)", step.Selector, err)
+		}
+		if !visible {
+			return "", fmt.Errorf("Assertion failed: %s is not visible", step.Selector)
+		}
+		return fmt.Sprintf("Asserted %s is visible", step.Selector), nil
+	case "assert_hidden":
+		hidden, err := page.Locator(step.Selector).IsHidden()
+		if err != nil {
+			return "", fmt.Errorf("Check hidden state of %s (Error: %v)", step.Selector, err)
+		}
+		if !hidden {
+			return "", fmt.Errorf("Assertion failed: %s is not hidden", step.Selector)
+		}
+		return fmt.Sprintf("Asserted %s is hidden", step.Selector), nil
 
 	case "scrape":
 		if step.Scrape == nil {
